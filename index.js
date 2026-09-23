@@ -1,12 +1,15 @@
 console.log("hello world");
 
+require("dotenv").config();
 const express = require("express");
+const mongoose = require("mongoose");
+const Note = require("./models/note");
+
 const app = express();
-const cors = require('cors');
 
 app.use(express.json());
 
-app.use(express.static('dist'));
+app.use(express.static("dist"));
 
 const requestLogger = (request, response, next) => {
   console.log("Method:", request.method);
@@ -17,6 +20,23 @@ const requestLogger = (request, response, next) => {
 };
 
 app.use(requestLogger);
+
+const password = process.argv[2];
+const url = `mongodb+srv://fullstack:${password}@cluster0.cq7yvhx.mongodb.net/noteApp?appName=Cluster0`;
+mongoose.set("strictQuery", false);
+mongoose.connect(url, { family: 4 });
+const noteSchema = new mongoose.Schema({
+  content: String,
+  important: Boolean,
+});
+noteSchema.set("toJSON", {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  },
+});
+// const Note = mongoose.model('Note', noteSchema);
 
 let notes = [
   {
@@ -41,20 +61,28 @@ app.get("/", (request, response) => {
 });
 
 app.get("/api/notes", (request, response) => {
-  response.json(notes);
-  console.log(request.headers);
+  Note.find({}).then((notes) => {
+    response.json(notes);
+  });
+  // response.json(notes);
+  // console.log(request.headers);
 });
 
 app.get("/api/notes/:id", (request, response) => {
-  const id = request.params.id;
-  const note = notes.find((note) => note.id === id);
-
-  if (note) {
+  Note.findById(request.params.id).then((note) => {
     response.json(note);
-  } else {
-    response.status(400).end();
-  }
+  });
 });
+// app.get("/api/notes/:id", (request, response) => {
+//   const id = request.params.id;
+//   const note = notes.find((note) => note.id === id);
+
+//   if (note) {
+//     response.json(note);
+//   } else {
+//     response.status(400).end();
+//   }
+// });
 
 app.delete("/api/notes/:id", (request, response) => {
   const id = request.params.id;
@@ -78,16 +106,18 @@ app.post("/api/notes", (request, response) => {
     });
   }
 
-  const note = {
+  const note = new Note({
     content: body.content,
     important: body.important || false,
-    id: generateId(),
-  };
+  });
 
-  notes = notes.concat(note);
+  note.save().then((savedNote) => {
+    response.json(savedNote);
+  });
+  // notes = notes.concat(note);
 
   console.log(note);
-  response.json(note);
+  // response.json(note);
   console.log(request.headers);
 });
 
