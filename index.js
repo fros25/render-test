@@ -2,7 +2,7 @@ console.log("hello world");
 
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
+// const mongoose = require("mongoose");
 const Note = require("./models/note");
 
 const app = express();
@@ -21,21 +21,21 @@ const requestLogger = (request, response, next) => {
 
 app.use(requestLogger);
 
-const password = process.argv[2];
-const url = `mongodb+srv://fullstack:${password}@cluster0.cq7yvhx.mongodb.net/noteApp?appName=Cluster0`;
-mongoose.set("strictQuery", false);
-mongoose.connect(url, { family: 4 });
-const noteSchema = new mongoose.Schema({
-  content: String,
-  important: Boolean,
-});
-noteSchema.set("toJSON", {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
-    delete returnedObject._id;
-    delete returnedObject.__v;
-  },
-});
+// const password = process.argv[2];
+// const url = `mongodb+srv://fullstack:${password}@cluster0.cq7yvhx.mongodb.net/noteApp?appName=Cluster0`;
+// mongoose.set("strictQuery", false);
+// mongoose.connect(url, { family: 4 });
+// const noteSchema = new mongoose.Schema({
+//   content: String,
+//   important: Boolean,
+// });
+// noteSchema.set("toJSON", {
+//   transform: (document, returnedObject) => {
+//     returnedObject.id = returnedObject._id.toString();
+//     delete returnedObject._id;
+//     delete returnedObject.__v;
+//   },
+// });
 // const Note = mongoose.model('Note', noteSchema);
 
 let notes = [
@@ -91,11 +91,11 @@ app.delete("/api/notes/:id", (request, response) => {
   response.status(204).end();
 });
 
-const generateId = () => {
-  const maxId =
-    notes.length > 0 ? Math.max(...notes.map((n) => Number(n.id))) : 0;
-  return String(maxId + 1);
-};
+// const generateId = () => {
+//   const maxId =
+//     notes.length > 0 ? Math.max(...notes.map((n) => Number(n.id))) : 0;
+//   return String(maxId + 1);
+// };
 
 app.post("/api/notes", (request, response) => {
   const body = request.body;
